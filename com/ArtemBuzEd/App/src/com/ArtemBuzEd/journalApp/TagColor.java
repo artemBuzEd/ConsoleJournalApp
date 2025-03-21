@@ -1,3 +1,5 @@
+package com.ArtemBuzEd.journalApp;
+
 public enum TagColor {
     RED,
     BLUE,

@@ -1,10 +1,23 @@
+package com.ArtemBuzEd.journalApp;
+
+import Comparators.DateComparator;
+import Comparators.TitleComparator;
+import Entities.JournalEntry;
+import Entities.Tag;
+import Entities.User;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class JournalManager {
-    public static void displayUserJournals(User user) {
+    private final User user;
+
+    public JournalManager(User user) {
+        this.user = user;
+    }
+    public void displayUserJournals() {
         if(user.getJournalList().isEmpty()){
             System.out.println("No journal found");
             return;
@@ -14,7 +27,7 @@ public class JournalManager {
             displayJournalEntry(je);
         }
     }
-    public static void displayJournalEntry(JournalEntry entry) {
+    public void displayJournalEntry(JournalEntry entry) {
         System.out.println("\n===" + entry.getTitle() + "===");
         System.out.println("Date: " + entry.getWroteDate());
         System.out.println("Time: " + entry.getWroteTime().getHour() + ":" + entry.getWroteTime().getMinute());
@@ -33,7 +46,7 @@ public class JournalManager {
         System.out.println("\n==================================");
 
     }
-    public static void addJournal(Scanner scanner, User user){
+    public void addJournal(Scanner scanner){
         System.out.println("\n===== Add Journal =====");
         System.out.println("Enter Journal title: ");
         String journalTitle = scanner.nextLine().trim();
@@ -61,7 +74,7 @@ public class JournalManager {
         System.out.println("Journal added successfully!");
     }
 
-    public static void addTagToEntry(Scanner scanner, JournalEntry je){
+    public void addTagToEntry(Scanner scanner, JournalEntry je){
         System.out.println("Enter tag name");
         String tagName = scanner.nextLine().trim();
 
@@ -79,7 +92,7 @@ public class JournalManager {
         je.addTag(newTag);
     }
 
-    public static void updateJournal(Scanner scanner, User user){
+    public void updateJournal(Scanner scanner){
         var jeList = user.getJournalList();
         if(jeList.isEmpty()){
             System.out.println("No journal found.");
@@ -139,7 +152,7 @@ public class JournalManager {
 
     }
 
-    public static void deleteJournal(Scanner scanner, User user){
+    public void deleteJournal(Scanner scanner){
         if(user.getJournalList().isEmpty()){
             System.out.println("No journal found.");
             return;
@@ -165,7 +178,7 @@ public class JournalManager {
         }
     }
 
-    public static void displayJournalSearchResult(List<JournalEntry> journalList){
+    public void displayJournalSearchResult(List<JournalEntry> journalList){
         if(journalList.isEmpty()){
             System.out.println("No matching journals was found.");
             return;
@@ -185,7 +198,7 @@ public class JournalManager {
             displayJournalEntry(journalList.get(choice - 1));
         }
     }
-    public static void searchJournal(Scanner scanner, User user){
+    public void searchJournal(Scanner scanner){
         if(user.getJournalList().isEmpty()){
             System.out.println("No journal found.");
             return;
@@ -207,7 +220,7 @@ public class JournalManager {
                 System.out.println("Enter Journal Title: ");
                 String searchableTitle = scanner.nextLine().trim().toLowerCase();
                 for(JournalEntry je : user.getJournalList()){
-                    if(je.getTitle().toLowerCase().equals(searchableTitle)){
+                    if(je.getTitle().toLowerCase().contains(searchableTitle)){
                         journalListOfFounded.add(je);
                     }
                 }
@@ -216,17 +229,17 @@ public class JournalManager {
                     System.out.println("Enter Journal Content: ");
                     String searchableContent = scanner.nextLine().trim().toLowerCase();
                     for(JournalEntry je : user.getJournalList()){
-                        if(je.getContent().toLowerCase().equals(searchableContent)){
+                        if(je.getContent().toLowerCase().contains(searchableContent)){
                             journalListOfFounded.add(je);
                         }
                     }
                     break;
             case "3":
-                System.out.println("Enter Journal Tag: ");
+                System.out.println("Enter Journal Entities.Tag: ");
                 String searchableTag = scanner.nextLine().trim().toLowerCase();
                 for(JournalEntry je : user.getJournalList()){
                     for(Tag tag : je.getTags()){
-                        if(tag.getName().toLowerCase().equals(searchableTag)){
+                        if(tag.getName().toLowerCase().contains(searchableTag)){
                             journalListOfFounded.add(je);
                             break;
                         }
@@ -251,7 +264,7 @@ public class JournalManager {
         displayJournalSearchResult(journalListOfFounded);
     }
 
-    public static void sortJournals(Scanner scanner, List<JournalEntry> journalList){
+    public void sortJournals(Scanner scanner){
         System.out.println("\n===== Sort Journals =====");
         System.out.println("Sort by");
         System.out.println("1. Title (a-z)");
@@ -262,7 +275,7 @@ public class JournalManager {
 
         String choice = scanner.nextLine().trim();
 
-        List<JournalEntry> sortedList = new ArrayList<>(journalList);
+        List<JournalEntry> sortedList = new ArrayList<>(user.getJournalList());
         switch (choice) {
             case "1":
                 sortedList.sort(new TitleComparator());
@@ -290,7 +303,7 @@ public class JournalManager {
         System.out.println("\nEnter entry number you want to watch (or 0 to quit)");
         int jeChoice = Integer.parseInt(scanner.nextLine().trim());
 
-        if(jeChoice > 0 && jeChoice <= journalList.size()){
+        if(jeChoice > 0 && jeChoice <= user.getJournalList().size()){
             displayJournalEntry(sortedList.get(jeChoice - 1));
         }
     }

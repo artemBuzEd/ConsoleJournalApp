@@ -1,3 +1,7 @@
+package Comparators;
+
+import Entities.JournalEntry;
+
 import java.util.Comparator;
 
 public class DateComparator implements Comparator<JournalEntry> {

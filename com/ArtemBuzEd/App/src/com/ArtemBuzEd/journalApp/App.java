@@ -1,5 +1,8 @@
+package com.ArtemBuzEd.journalApp;
+
+import Entities.User;
+
 import java.util.Scanner;
-import com.google.gson.*;
 
 //створити пакет com.ArtemBuz.JournalApp
 //створювати обєкт journalManager, передававати туди юзера в конструктор
@@ -12,18 +15,19 @@ public class App {
         User user1 = new User("Zaglushka", 2006);
         System.out.println("Enter command:");
 
+        JournalManager jm = new JournalManager(user1);
         boolean systemRun = true;
         while (systemRun){
             printMenu();
             String command = scanner.nextLine().trim().toLowerCase();
 
             switch (command) {
-                case "1" -> JournalManager.addJournal(scanner, user1);
-                case "2" -> JournalManager.displayUserJournals(user1);
-                case "3" -> JournalManager.updateJournal(scanner, user1);
-                case "4" -> JournalManager.deleteJournal(scanner, user1);
-                case "5" -> JournalManager.searchJournal(scanner, user1);
-                case "6" -> JournalManager.sortJournals(scanner, user1.getJournalList());
+                case "1" -> jm.addJournal(scanner);
+                case "2" -> jm.displayUserJournals();
+                case "3" -> jm.updateJournal(scanner);
+                case "4" -> jm.deleteJournal(scanner);
+                case "5" -> jm.searchJournal(scanner);
+                case "6" -> jm.sortJournals(scanner);
                 case "7" -> {
                     System.out.println("Journal closed. Goodbye!");
                     systemRun = false;
