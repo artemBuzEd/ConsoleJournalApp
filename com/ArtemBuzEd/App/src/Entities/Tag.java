@@ -1,16 +1,23 @@
 package Entities;
 
 import com.ArtemBuzEd.journalApp.TagColor;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Tag {
+    @JsonProperty("tag_id")
     private String id;
+
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("color")
     private TagColor color;
-    List<JournalEntry> journalEntryList;
+
 
     //Color change for console
     public static final String ANSI_RESET = "\u001B[0m";
@@ -20,21 +27,23 @@ public class Tag {
     public static final String ANSI_BLUE = "\u001B[34m";
     public static final String ANSI_PURPLE = "\u001B[35m";
 
+    //getters
+    @JsonProperty("tag_id")
+    public String getId() {return id;}
+    @JsonProperty("name")
+    public String getName() {return name;}
+    @JsonProperty("color")
+    public TagColor getColor() {return color;}
+
+
+    public Tag(){
+        this.id = UUID.randomUUID().toString();
+    }
+
     public Tag(String name, TagColor color) {
         this.id = UUID.randomUUID().toString();
         this.name = name;
         this.color = color;
-        journalEntryList = new ArrayList<>();
-    }
-
-    public String getName() {return name;}
-    public TagColor getColor() {return color;}
-    public List<JournalEntry> getJournalEntryList() {return journalEntryList;}
-
-    public void addJournalEntry(JournalEntry journalEntry) {
-        if(!journalEntryList.contains(journalEntry)) {
-            journalEntryList.add(journalEntry);
-        }
     }
 
     @Override

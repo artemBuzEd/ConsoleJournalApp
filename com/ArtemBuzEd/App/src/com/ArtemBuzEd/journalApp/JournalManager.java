@@ -5,23 +5,60 @@ import Comparators.TitleComparator;
 import Entities.JournalEntry;
 import Entities.Tag;
 import Entities.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class JournalManager {
-    private final User user;
+    private  User user;
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private static final String FILE_PATH = "user_data.json";
 
+
+    public User getUser() {return user;}
+    public void saveUserDate(){
+        try {
+            objectMapper.writeValue(new File(FILE_PATH), user);
+            System.out.println("Saved user date");
+        } catch (IOException e){
+            System.out.println("Error saving user data: " + e.getMessage());
+        }
+    }
+    public void loadUserDate(){
+        try {
+            File file = new File(FILE_PATH);
+            if(file.exists()){
+                this.user = objectMapper.readValue(file, User.class);
+            }
+        } catch (IOException e){
+            System.out.println("Error loading user data: " + e.getMessage());
+        }
+    }
+
+    public JournalManager(){
+        loadUserDate();
+    }
     public JournalManager(User user) {
         this.user = user;
     }
-    public void displayUserJournals() {
+
+    public boolean isJournalListEmpty() {
         if(user.getJournalList().isEmpty()){
-            System.out.println("No journal found");
-            return;
+            System.out.println("No journals found");
+            return true;
         }
+        return false;
+    }
+
+    public void displayUserJournals() {
+        if(isJournalListEmpty())
+            return;
 
         for(JournalEntry je : user.getJournalList()){
             displayJournalEntry(je);
@@ -46,127 +83,30 @@ public class JournalManager {
         System.out.println("\n==================================");
 
     }
-    public void addJournal(Scanner scanner){
-        System.out.println("\n===== Add Journal =====");
-        System.out.println("Enter Journal title: ");
-        String journalTitle = scanner.nextLine().trim();
 
-        System.out.println("Enter Journal content: ");
-        String journalContent = scanner.nextLine().trim();
-
-        JournalEntry je = new JournalEntry(journalTitle, journalContent);
-
-        boolean addTag = true;
-        while (addTag){
-            System.out.println("Do you want to add tag (y/n): ");
-            String answer = scanner.nextLine().trim().toLowerCase();
-
-            if(answer.equals("y")){
-                addTagToEntry(scanner, je);
-            } else if (answer.equals("n")){
-                addTag = false;
-            } else {
-                System.out.println("Invalid option. Try again.");
-            }
-        }
-
-        user.addJournalEntry(je);
+    public void addJournal(JournalEntry entry) {
+        user.addJournalEntry(entry);
         System.out.println("Journal added successfully!");
     }
+    public void updateJournal(JournalEntry entry, String newTitle, String newContent, String updateTags) {
 
-    public void addTagToEntry(Scanner scanner, JournalEntry je){
-        System.out.println("Enter tag name");
-        String tagName = scanner.nextLine().trim();
-
-        TagColor color = null;
-        while (color == null) {
-            System.out.println("Choose tag color (Red/Blue/Yellow/Green/Purple)");
-            String tagColor = scanner.nextLine().trim().toUpperCase();
-            try {
-                color = TagColor.valueOf(tagColor);
-            } catch (Exception e) {
-                System.out.println("Invalid color. Try again.");
-            }
+        if(!newTitle.isEmpty()){
+            entry.setTitle(newTitle);
         }
-        Tag newTag = new Tag(tagName, color);
-        je.addTag(newTag);
+
+        if(!newContent.isEmpty()){
+            entry.setContent(newContent);
+        }
+
+        if(!updateTags.equals("y")){
+            entry.getTags().clear();
+        }
+
+        System.out.println("Journal updated successfully!");
     }
 
-    public void updateJournal(Scanner scanner){
-        var jeList = user.getJournalList();
-        if(jeList.isEmpty()){
-            System.out.println("No journal found.");
-            return;
-        }
-        System.out.println("\n===== Update Journal =====");
-        int i = 0;
-        for (JournalEntry je : jeList){
-            ++i;
-            System.out.println((i) + ". Journal Title: " + je.getTitle());
-        }
-
-        System.out.println("\nEnter Journal title number: (or 0 to quit)");
-        int choice = Integer.parseInt(scanner.nextLine().trim());
-
-        if(choice > 0 && choice <= jeList.size()){
-            JournalEntry je = jeList.get(choice - 1);
-
-            System.out.println("Current Journal Title: " + je.getTitle());
-            System.out.println("Enter new title or press Enter to skip");
-            String newTitle = scanner.nextLine().trim();
-            if(!newTitle.isEmpty()){
-                je.setTitle(newTitle);
-            }
-
-            System.out.println("Current Content of Journal: " + je.getContent());
-            System.out.println("Enter new content or press Enter to skip");
-            String newContent = scanner.nextLine().trim();
-            if(!newContent.isEmpty()){
-                je.setContent(newContent);
-            }
-
-            System.out.println("Current Journal Tags: ");
-            if(je.getTags().isEmpty()){
-                System.out.println("No tags found.");
-            } else {
-                for (Tag tag : je.getTags()) {
-                    System.out.println("- " + tag);
-                }
-            }
-
-            System.out.println("Do you want to update tags (y/n): ");
-            String answer = scanner.nextLine().trim().toLowerCase();
-            if(answer.equals("y")){
-                je.getTags().clear();
-                boolean addTag = true;
-                while (addTag) {
-                    addTagToEntry(scanner, je);
-                    System.out.println("Do you want to add tag (y/n): ");
-                    answer = scanner.nextLine().trim().toLowerCase();
-                    if(!answer.equals("y")){
-                        addTag = false;
-                    }
-                }
-            }
-        }
-
-    }
-
-    public void deleteJournal(Scanner scanner){
-        if(user.getJournalList().isEmpty()){
-            System.out.println("No journal found.");
-            return;
-        }
-
-        System.out.println("\n===== Delete Journal =====");
-        for (int i = 0; i < user.getJournalList().size(); i++){
-            System.out.println((i + 1) + ". Journal Title: " + user.getJournalList().get(i).getTitle());
-        }
-
-        System.out.println("\nEnter Journal title number: (or 0 to quit)");
-
+    public void deleteJournal(int choice){
         try {
-            int choice = Integer.parseInt(scanner.nextLine().trim());
             if (choice > 0 && choice <= user.getJournalList().size()) {
                 user.getJournalList().remove(choice - 1);
                 System.out.println("Journal was deleted successfully!");
@@ -198,48 +138,31 @@ public class JournalManager {
             displayJournalEntry(journalList.get(choice - 1));
         }
     }
-    public void searchJournal(Scanner scanner){
-        if(user.getJournalList().isEmpty()){
-            System.out.println("No journal found.");
-            return;
-        }
-
-        System.out.println("\n===== Search Journal =====");
-        System.out.println("Search by");
-        System.out.println("1. Title");
-        System.out.println("2. Content");
-        System.out.println("3. Tags");
-        System.out.println("4. Date");
-        System.out.println("Enter your choice: ");
-
-        String choice = scanner.nextLine().trim();
+    public void searchJournal(String searchChoice, String searchTerm){
         List<JournalEntry> journalListOfFounded = new ArrayList<>();
 
-        switch (choice) {
+        switch (searchChoice) {
             case "1":
                 System.out.println("Enter Journal Title: ");
-                String searchableTitle = scanner.nextLine().trim().toLowerCase();
                 for(JournalEntry je : user.getJournalList()){
-                    if(je.getTitle().toLowerCase().contains(searchableTitle)){
+                    if(je.getTitle().toLowerCase().contains(searchTerm.toLowerCase())){
                         journalListOfFounded.add(je);
                     }
                 }
                 break;
                 case "2":
                     System.out.println("Enter Journal Content: ");
-                    String searchableContent = scanner.nextLine().trim().toLowerCase();
                     for(JournalEntry je : user.getJournalList()){
-                        if(je.getContent().toLowerCase().contains(searchableContent)){
+                        if(je.getContent().toLowerCase().contains(searchTerm.toLowerCase())){
                             journalListOfFounded.add(je);
                         }
                     }
                     break;
             case "3":
                 System.out.println("Enter Journal Entities.Tag: ");
-                String searchableTag = scanner.nextLine().trim().toLowerCase();
                 for(JournalEntry je : user.getJournalList()){
                     for(Tag tag : je.getTags()){
-                        if(tag.getName().toLowerCase().contains(searchableTag)){
+                        if(tag.getName().toLowerCase().contains(searchTerm.toLowerCase())){
                             journalListOfFounded.add(je);
                             break;
                         }
@@ -247,14 +170,15 @@ public class JournalManager {
                 }
                 break;
             case "4":
-                System.out.println("Enter Journal Date: ");
-                String searchableDate = scanner.nextLine().trim().toLowerCase();
-                LocalDate searchDate = LocalDate.parse(searchableDate);
-
-                for(JournalEntry je : user.getJournalList()){
-                    if(je.getWroteDate().equals(searchDate)){
-                        journalListOfFounded.add(je);
+                try {
+                    LocalDate searchDate = LocalDate.parse(searchTerm);
+                    for(JournalEntry je : user.getJournalList()){
+                        if(je.getWroteDate().equals(searchDate)){
+                            journalListOfFounded.add(je);
+                        }
                     }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage() + " [searchJournalFunc]");
                 }
                 break;
                 default:
@@ -264,19 +188,10 @@ public class JournalManager {
         displayJournalSearchResult(journalListOfFounded);
     }
 
-    public void sortJournals(Scanner scanner){
-        System.out.println("\n===== Sort Journals =====");
-        System.out.println("Sort by");
-        System.out.println("1. Title (a-z)");
-        System.out.println("2. Title (z-a)");
-        System.out.println("3. Date from newest");
-        System.out.println("4. Date from oldest");
-        System.out.println("Enter your choice: ");
-
-        String choice = scanner.nextLine().trim();
+    public List<JournalEntry> sortedJournals(String sortChoice){
 
         List<JournalEntry> sortedList = new ArrayList<>(user.getJournalList());
-        switch (choice) {
+        switch (sortChoice) {
             case "1":
                 sortedList.sort(new TitleComparator());
                 break;
@@ -291,21 +206,15 @@ public class JournalManager {
                 break;
             default:
                 System.out.println("Invalid choice");
-                return;
         }
         System.out.println("\n===== Sort Journals =====");
-        int i = 0;
+        int i = 1;
         for(JournalEntry je : sortedList){
-            ++i;
             System.out.println((i) + ". " + je.getTitle() + " (" + je.getWroteDate() + ")");
+            i++;
         }
 
-        System.out.println("\nEnter entry number you want to watch (or 0 to quit)");
-        int jeChoice = Integer.parseInt(scanner.nextLine().trim());
-
-        if(jeChoice > 0 && jeChoice <= user.getJournalList().size()){
-            displayJournalEntry(sortedList.get(jeChoice - 1));
-        }
+        return sortedList;
     }
 
 }
